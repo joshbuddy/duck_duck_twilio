@@ -71,8 +71,10 @@ run Renee {
       doc.search('//p/*').each do |n| 
         n.replace(n.content) unless (%w[i b].include?(n.name))
       end
-      $client.sms.messages.create(:to => request['From'], :from => request['To'], :body => doc.to_s)
-      halt :ok
+      response = Twilio::TwiML::Response.new do |r|
+        r.Sms buf.join(" ")
+      end
+      halt [200, {"Content-type" => "text/xml"}, [doc.to_s]]
     end
   end
 }
