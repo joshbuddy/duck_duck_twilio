@@ -53,7 +53,7 @@ use Rack::CommonLogger
 use Rack::ShowExceptions
 run Renee {
   get do
-    body = request['body']
+    body = request['Body']
     parts = body.strip.split(/\s+/)
     query = parts.shift
     results = DuckDuckTwilio::Results.new(Yajl::Parser.new.parse(RestClient.get("http://duckduckgo.com/?q=#{CGI.escape(query)}&o=json")))
