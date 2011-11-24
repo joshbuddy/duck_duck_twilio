@@ -43,7 +43,6 @@ end
 
 account_sid = ENV['TWILIO_ACCOUNT_SID']
 auth_token = ENV['TWILIO_AUTH_TOKEN']
-twilio_number = ENV['TWILIO_NUMBER']
 
 # set up a client to talk to the Twilio REST API
 client = Twilio::REST::Client.new(account_sid, auth_token)
@@ -63,14 +62,15 @@ run Renee {
       results.results.each_with_index{|r,i| buf << "#{i + 1}. #{r.link}"}
       size = 0
       buf.select! {|b| (size += b.size) < 160}
-      $client.sms.messages.create(:to => request['From'], :from => "+#{twilio_number}", :body => buf.join(" "))
-      halt :ok
+      halt Twilio::TwiML::Response.new do |r|
+        r.Sms buf.join(" ")
+      end.text, "Content-type" => "text/xml"
     when 1
       doc = Nokogiri::HTML(results.results[Integer(parts.first) - 1].result)
       doc.search('//p/*').each do |n| 
         n.replace(n.content) unless (%w[i b].include?(n.name))
       end
-      $client.sms.messages.create(:to => request['From'], :from => "+#{twilio_number}", :body => doc.to_s)
+      $client.sms.messages.create(:to => request['From'], :from => request['To'], :body => doc.to_s)
       halt :ok
     end
   end
