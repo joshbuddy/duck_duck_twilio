@@ -72,9 +72,9 @@ run Renee {
         n.replace(n.content) unless (%w[i b].include?(n.name))
       end
       response = Twilio::TwiML::Response.new do |r|
-        r.Sms buf.join(" ")
+        r.Sms doc.to_s
       end
-      halt [200, {"Content-type" => "text/xml"}, [doc.to_s]]
+      halt [200, {"Content-type" => "text/xml"}, [response.text]]
     end
   end
 }
