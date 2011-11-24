@@ -63,14 +63,14 @@ run Renee {
       results.results.each_with_index{|r,i| buf << "#{i + 1}. #{r.link}"}
       size = 0
       buf.select! {|b| (size += b.size) < 160}
-      $client.sms.messages.create(:to => request['from'], :from => "+#{twilio_number}", :body => buf.join(" "))
+      $client.sms.messages.create(:To => request['from'], :From => "+#{twilio_number}", :Body => buf.join(" "))
       halt :ok
     when 1
       doc = Nokogiri::HTML(results.results[Integer(parts.first) - 1].result)
       doc.search('//p/*').each do |n| 
         n.replace(n.content) unless (%w[i b].include?(n.name))
       end
-      $client.sms.messages.create(:to => request['from'], :from => "+#{twilio_number}", :body => doc.to_s)
+      $client.sms.messages.create(:To => request['from'], :From => "+#{twilio_number}", :Body => doc.to_s)
       halt :ok
     end
   end
