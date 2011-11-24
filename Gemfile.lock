@@ -1,0 +1,33 @@
+GEM
+  remote: http://rubygems.org/
+  specs:
+    callsite (0.0.11)
+    json (1.6.1)
+    mime-types (1.17.2)
+    nokogiri (1.5.0)
+    rack (1.3.5)
+    renee (0.3.2)
+      renee-core (= 0.3.2)
+      renee-render (= 0.3.2)
+    renee-core (0.3.2)
+      rack (~> 1.3.0)
+    renee-render (0.3.2)
+      callsite (~> 0.0.6)
+      rack (~> 1.3.0)
+      renee-core (= 0.3.2)
+      tilt (~> 1.3.3)
+    rest-client (1.6.7)
+      mime-types (>= 1.16)
+    shotgun (0.9)
+      rack (>= 1.0)
+    tilt (1.3.3)
+
+PLATFORMS
+  ruby
+
+DEPENDENCIES
+  json
+  nokogiri
+  renee
+  rest-client
+  shotgun
