@@ -1,7 +1,8 @@
+require 'twilio-ruby'
 require 'rest_client'
 require 'nokogiri'
 require 'renee'
-require 'json'
+require 'yajl'
 require 'cgi'
 
 module DuckDuckTwilio
@@ -28,6 +29,8 @@ module DuckDuckTwilio
   end
 
   class Result
+    attr_reader :result
+
     def initialize(result)
       @result = result
     end
@@ -38,6 +41,14 @@ module DuckDuckTwilio
   end
 end
 
+account_sid = ENV['TWILIO_ACCOUNT_SID']
+auth_token = ENV['TWILIO_AUTH_TOKEN']
+twilio_number = ENV['TWILIO_NUMBER']
+
+# set up a client to talk to the Twilio REST API
+client = Twilio::REST::Client.new(account_sid, auth_token)
+$client = client.account
+
 use Rack::CommonLogger
 use Rack::ShowExceptions
 run Renee {
@@ -45,14 +56,20 @@ run Renee {
     body = request['body']
     parts = body.strip.split(/\s+/)
     query = parts.shift
-    results = DuckDuckTwilio::Results.new(JSON.parse(RestClient.get("http://duckduckgo.com/?q=#{CGI.escape(query)}&o=json")))
+    results = DuckDuckTwilio::Results.new(Yajl::Parser.new.parse(RestClient.get("http://duckduckgo.com/?q=#{CGI.escape(query)}&o=json")))
     case parts.size
     when 0
       buf = []
       results.results.each_with_index{|r,i| buf << "#{i + 1}. #{r.link}"}
-      halt buf.join(" ")
+      $client.sms.messages.create({:from => "+#{twilio_number}", :body => buf.join(" ")})
+      halt :ok
     when 1
-      halt results.results[Integer(parts.first) - 1].inspect
+      doc = Nokogiri::HTML(results.results[Integer(parts.first) - 1].result)
+      doc.search('//p/*').each do |n| 
+        n.replace(n.content) unless (%w[i b].include?(n.name))
+      end
+      $client.sms.messages.create({:from => "+#{twilio_number}", :body => doc.to_s})
+      halt :ok
     end
   end
 }
